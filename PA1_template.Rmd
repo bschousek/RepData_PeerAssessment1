@@ -8,8 +8,10 @@ At this time we also convert the date variable into POSIXct format using the
 lubridate mdy() function.  
 Also create an aggregated day by day total step count
 
-```{r}
+```{r load}
 library(lubridate)
+library(ggplot2)
+#library(scales)
 unzip("activity.zip")
 raw_activity<-read.csv("activity.csv",header=T,sep=",")
 activity<-data.frame(date=ymd(raw_activity$date))
@@ -24,7 +26,7 @@ activity$steps=raw_activity$steps
 Next we aggregate across all days and plot a histogram  
 * add breaks=10 to give a little finer granularity on the histogram  
 * add annotation with mean and median
-```{r}
+```{r meantotal}
 daybyday<-aggregate(steps~date,data=activity,sum)
 
 maintitle<-paste("Histogram of steps per day\n",
@@ -35,7 +37,7 @@ maintitle<-paste("Histogram of steps per day\n",
 hist(daybyday$steps,breaks=10,main=maintitle,xlab="Number of steps")
 ```
 ## What is the average daily activity pattern?
-```{r}
+```{r averagepattern}
 averageday<-aggregate(steps~interval,data=activity,mean)
 with(averageday,plot(steps~interval,type="l"))
 max_steps<-averageday[which.max(averageday$steps),]
@@ -48,18 +50,19 @@ text(max_steps$interval,max_steps$steps,pos=4,
 
 ## Imputing missing values
 How many NAs are there total?
-```{r}
+```{r findNA}
 narows<-is.na(activity$steps)
 sum(narows)
 ```
 Now for each of those create data equal to the mean for the interval as calculated in averageday
-```{r}
+```{r impute}
 imputers<-lapply(which(narows),function(x) {
         averageday$steps[which(averageday$interval==activity$interval[x])]})
 imputed.activity<-activity
 imputed.activity$steps[narows]<-simplify2array(imputers)
+activity$imputed.steps<-imputed.activity$steps
 ```
-```{r}
+```{r plotmean}
 daybyday<-aggregate(steps~date,data=imputed.activity,sum)
 
 maintitle<-paste("Histogram of steps per day\n",
@@ -70,3 +73,17 @@ maintitle<-paste("Histogram of steps per day\n",
 hist(daybyday$steps,breaks=10,main=maintitle,xlab="Number of steps")
 ```
 ## Are there differences in activity patterns between weekdays and weekends?
+We return to using the activity data without imputed values
+```{r daymode}
+daynames<-weekdays(activity$date)
+activity$daymode<-as.factor(simplify2array(lapply(daynames,
+                function(x)
+                { ifelse(x %in% c("Saturday","Sunday"),"weekend","weekday")})))
+daybyday2<-aggregate(steps~interval+daymode,data=activity,mean)
+ggplot(data=daybyday2,aes(x=interval,y=steps))+
+    geom_line()+facet_grid(daymode~.)+
+    scale_x_datetime(labels=date_format("%H:%M"),breaks="4 hour")
+    
+
+
+                                           ```

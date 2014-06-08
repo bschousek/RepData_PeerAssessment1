@@ -11,6 +11,8 @@ Also create an aggregated day by day total step count
 
 ```r
 library(lubridate)
+library(ggplot2)
+#library(scales)
 unzip("activity.zip")
 raw_activity<-read.csv("activity.csv",header=T,sep=",")
 activity<-data.frame(date=ymd(raw_activity$date))
@@ -36,7 +38,7 @@ maintitle<-paste("Histogram of steps per day\n",
 hist(daybyday$steps,breaks=10,main=maintitle,xlab="Number of steps")
 ```
 
-![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
+![plot of chunk meantotal](figure/meantotal.png) 
 ## What is the average daily activity pattern?
 
 ```r
@@ -49,7 +51,7 @@ text(max_steps$interval,max_steps$steps,pos=4,
            strftime(max_steps$interval, format="%H:%M")))
 ```
 
-![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+![plot of chunk averagepattern](figure/averagepattern.png) 
 
 
 ## Imputing missing values
@@ -70,6 +72,7 @@ imputers<-lapply(which(narows),function(x) {
         averageday$steps[which(averageday$interval==activity$interval[x])]})
 imputed.activity<-activity
 imputed.activity$steps[narows]<-simplify2array(imputers)
+activity$imputed.steps<-imputed.activity$steps
 ```
 
 ```r
@@ -83,5 +86,21 @@ maintitle<-paste("Histogram of steps per day\n",
 hist(daybyday$steps,breaks=10,main=maintitle,xlab="Number of steps")
 ```
 
-![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
+![plot of chunk plotmean](figure/plotmean.png) 
 ## Are there differences in activity patterns between weekdays and weekends?
+We return to using the activity data without imputed values
+
+```r
+daynames<-weekdays(activity$date)
+activity$daymode<-as.factor(simplify2array(lapply(daynames,
+                function(x)
+                { ifelse(x %in% c("Saturday","Sunday"),"weekend","weekday")})))
+daybyday2<-aggregate(steps~interval+daymode,data=activity,mean)
+ggplot(data=daybyday2,aes(x=interval,y=steps))+
+    geom_line()+facet_grid(daymode~.)+
+    scale_x_datetime(labels=date_format("%H:%M"),breaks="4 hour")
+```
+
+```
+## Error: could not find function "date_format"
+```
