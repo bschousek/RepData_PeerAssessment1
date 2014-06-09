@@ -28,7 +28,7 @@ Next we create a data frame *daybyday* aggregating the total sum of steps for ea
 
 
 ```r
-daybyday <- aggregate(steps ~ date, data = activity, sum)
+daybyday <- aggregate(steps ~ date, data = activity, sum)  #note the default for aggregate is to ignore NA values
 ```
 
 and plot a histogram of the resulting data  
@@ -68,8 +68,10 @@ narows <- which(is.na(activity$steps))
 number.nas <- length(narows)
 ```
 
-There are 2304 rows containing steps with NA values.  
-Using lapply we step through each of these rows and extract what the interval is for that row. We then find out what the average number of steps for that time interval is from the previously calculated averageday data frame. This is combined into a list of imputed values by date and interval.
+There are 2304 rows containing steps with NA values. We will replace these rows with mean values for the given interval.  
+
+
+Using lapply we step through each of these rows and extract what the interval is for that row. We then find out what the average number of steps for that time interval is from the previously calculated averageday data frame. This is combined into a list of imputed values by date and interval.  
 Next we copy the NA-ridden steps variable into a new variable in the analysis dataframe, and replace all the rows containing NA step values with imputed values.  
 Finally we create a new dataframe analagous to daybyday aggregating the sum activity per day.
 
@@ -122,8 +124,4 @@ ggplot(data = daybyday2, aes(x = interval, y = steps)) + geom_line() + facet_gri
 ```
 
 ![plot of chunk weekend.vs.weekday](figure/weekend_vs_weekday.png) 
-
-```r
-
-```
 

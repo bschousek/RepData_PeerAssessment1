@@ -25,7 +25,7 @@ activity$interval<-
 Next we create a data frame *daybyday* aggregating the total sum of steps for each day.
 
 ```{r meantotal,echo=TRUE}
-daybyday<-aggregate(steps~date,data=activity,sum)
+daybyday<-aggregate(steps~date,data=activity,sum) #note the default for aggregate is to ignore NA values
 ```
 and plot a histogram of the resulting data  
 * add breaks=10 to give a little finer granularity on the histogram  
@@ -57,8 +57,10 @@ How many NAs are there total?
 narows<-which(is.na(activity$steps))
 number.nas<-length(narows)
 ```
-There are `r number.nas` rows containing steps with NA values.  
-Using lapply we step through each of these rows and extract what the interval is for that row. We then find out what the average number of steps for that time interval is from the previously calculated averageday data frame. This is combined into a list of imputed values by date and interval.
+There are `r number.nas` rows containing steps with NA values. We will replace these rows with mean values for the given interval.  
+
+
+Using lapply we step through each of these rows and extract what the interval is for that row. We then find out what the average number of steps for that time interval is from the previously calculated averageday data frame. This is combined into a list of imputed values by date and interval.  
 Next we copy the NA-ridden steps variable into a new variable in the analysis dataframe, and replace all the rows containing NA step values with imputed values.  
 Finally we create a new dataframe analagous to daybyday aggregating the sum activity per day.
 
@@ -98,10 +100,7 @@ Finally plot the activity data versus time interval and compare weekdays to week
 ```{r weekend.vs.weekday,echo=TRUE}
 library(ggplot2)
 library(scales) #date_format() from scales used for x axis labels
-ggplot(data=daybyday2,aes(x=interval,y=steps))+
-    geom_line()+facet_grid(daymode~.)+
+ggplot(data=daybyday2,aes(x=interval,y=steps))+  
+    geom_line()+facet_grid(daymode~.)+  
     scale_x_datetime(labels=date_format("%H:%M"),breaks="4 hour")
-    
-
-
-                                           ```
+```
