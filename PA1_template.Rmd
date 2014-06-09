@@ -8,6 +8,7 @@ At this time we also:
 * convert the date variable into POSIXct format using the lubridate ymd() function.
 * convert the interval to clock time first by prepending leading zeros to get a
  four digit interval, then extracting hour and minute  
+Individual analyses for each of the required plots are performed in that plot's section below, rather than in the preprocessing stage.
 
 
 ```{r load}
@@ -21,7 +22,7 @@ activity$interval<-
 
 
 ## What is mean total number of steps taken per day?
-Next we create a data frame aggregating the total sum of steps for each day
+Next we create a data frame *daybyday* aggregating the total sum of steps for each day.
 
 ```{r meantotal}
 daybyday<-aggregate(steps~date,data=activity,sum)
@@ -38,7 +39,7 @@ maintitle<-paste("Histogram of steps per day\n",
 hist(daybyday$steps,breaks=10,main=maintitle,xlab="Number of steps")
 ```
 ## What is the average daily activity pattern?
-Here instead of aggregating sums by date, we aggregate means by interval across all dates and plot the data. Then we find the interval which has the maximum average number of steps and annotate the plot with that point.
+Here instead of aggregating sums by date, we aggregate means by interval across all dates and plot the data. Then we find the interval which has the maximum average number of steps and annotate the plot with that point. This gives us a picture of what an average day looks like for this test subject.
 ```{r averagepattern}
 averageday<-aggregate(steps~interval,data=activity,mean)
 with(averageday,plot(steps~interval,type="l"))
@@ -54,11 +55,12 @@ text(max_steps$interval,max_steps$steps,pos=4,
 How many NAs are there total?
 ```{r findNA}
 narows<-which(is.na(activity$steps))
+number.nas<-length(narows)
 ```
-There are `r length(narows)` rows containing steps with NA values.  
-Using lapply we step through each of these rows, extract the interval for that row, and create a list of mean steps for that interval from the previously calculated average day dataframe.  
-Next we copy the NA-ridden steps variable into a new variable in the dataframe, and replace all the NA values with these mean values.  
-Finally created a new dataframe analagous to daybyday aggregating the sum activity per day.
+There are `r number.nas` rows containing steps with NA values.  
+Using lapply we step through each of these rows and extract what the interval is for that row. We then find out what the average number of steps for that time interval is from the previously calculated averageday data frame. This is combined into a list of imputed values by date and interval.
+Next we copy the NA-ridden steps variable into a new variable in the analysis dataframe, and replace all the rows containing NA step values with imputed values.  
+Finally we create a new dataframe analagous to daybyday aggregating the sum activity per day.
 
 ```{r impute}
 imputers<-lapply(narows,function(x) {
