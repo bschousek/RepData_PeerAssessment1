@@ -11,7 +11,7 @@ At this time we also:
 Individual analyses for each of the required plots are performed in that plot's section below, rather than in the preprocessing stage.
 
 
-```{r load}
+```{r load,echo=TRUE}
 library(lubridate)
 unzip("activity.zip")
 activity<-read.csv("activity.csv",header=T,sep=",")
@@ -24,13 +24,13 @@ activity$interval<-
 ## What is mean total number of steps taken per day?
 Next we create a data frame *daybyday* aggregating the total sum of steps for each day.
 
-```{r meantotal}
+```{r meantotal,echo=TRUE}
 daybyday<-aggregate(steps~date,data=activity,sum)
 ```
 and plot a histogram of the resulting data  
 * add breaks=10 to give a little finer granularity on the histogram  
 * add a title showing mean, median and day counts
-```{r meanhistogram}
+```{r meanhistogram,echo=TRUE}
 maintitle<-paste("Histogram of steps per day\n",
                  "n=",nrow(daybyday)," days",
                  "; mean=",round(mean(daybyday$steps)),
@@ -40,7 +40,7 @@ hist(daybyday$steps,breaks=10,main=maintitle,xlab="Number of steps")
 ```
 ## What is the average daily activity pattern?
 Here instead of aggregating sums by date, we aggregate means by interval across all dates and plot the data. Then we find the interval which has the maximum average number of steps and annotate the plot with that point. This gives us a picture of what an average day looks like for this test subject.
-```{r averagepattern}
+```{r averagepattern,echo=TRUE}
 averageday<-aggregate(steps~interval,data=activity,mean)
 with(averageday,plot(steps~interval,type="l"))
 max_steps<-averageday[which.max(averageday$steps),]
@@ -53,7 +53,7 @@ text(max_steps$interval,max_steps$steps,pos=4,
 
 ## Imputing missing values
 How many NAs are there total?
-```{r findNA}
+```{r findNA,echo=TRUE}
 narows<-which(is.na(activity$steps))
 number.nas<-length(narows)
 ```
@@ -62,7 +62,7 @@ Using lapply we step through each of these rows and extract what the interval is
 Next we copy the NA-ridden steps variable into a new variable in the analysis dataframe, and replace all the rows containing NA step values with imputed values.  
 Finally we create a new dataframe analagous to daybyday aggregating the sum activity per day.
 
-```{r impute}
+```{r impute,echo=TRUE}
 imputers<-lapply(narows,function(x) {
         averageday$steps[which(averageday$interval==activity$interval[x])]})
 activity$imputed.steps<-activity$steps
@@ -74,7 +74,7 @@ and plot a histogram of the resulting data
 * add a title showing mean, median and day counts
 
 Note that the imputed values did not affect the overall mean, and only slightly affected the median value. The only major change is an additional 8 days included in the histogram. 
-```{r plotmean}
+```{r plotmean,echo=TRUE}
 
 maintitle<-paste("Histogram of steps per day\n",
                  "n=",nrow(daybyday.i)," days",
@@ -87,7 +87,7 @@ hist(daybyday.i$imputed.steps,breaks=10,main=maintitle,xlab="Number of steps")
 We return to using the activity data without imputed values. First we use the weekdays function to get a character list of all the day names in the data frame.  
 Next we convert this list to an additional factor variable in the activity dataset which classifies each row as a weekend or weekday, assuming that weekends are Saturday and Sunday.  
 Finally aggregate the mean steps across both interval and weekend/weekday status
-```{r daymode}
+```{r daymode,echo=TRUE}
 daynames<-weekdays(activity$date)
 activity$daymode<-as.factor(simplify2array(lapply(daynames,
                 function(x)
@@ -95,7 +95,7 @@ activity$daymode<-as.factor(simplify2array(lapply(daynames,
 daybyday2<-aggregate(steps~interval+daymode,data=activity,mean)
 ```
 Finally plot the activity data versus time interval and compare weekdays to weekends. This test subject appears to get up a few hours later on weekends. They remain a little more active on weekend evenings but are obviously not hanging out in dance clubs until closing time. 
-```{r weekend.vs.weekday}
+```{r weekend.vs.weekday,echo=TRUE}
 library(ggplot2)
 library(scales) #date_format() from scales used for x axis labels
 ggplot(data=daybyday2,aes(x=interval,y=steps))+
